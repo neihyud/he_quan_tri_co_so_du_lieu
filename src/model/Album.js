@@ -3,17 +3,21 @@ const Schema = mongoose.Schema
 
 const AlbumSchema = new Schema({
     name: String,
-    artist: String,
+    artist: {
+        type: [mongoose.Types.ObjectId],
+        ref: "Artist"        
+    },
     song: {
-        type: [mongoose.Types.ObjectId]
+        type: [mongoose.Types.ObjectId],
+        ref: 'Song',
     },
     description: String,
     thumbnail: {
         type: String,
-        default: require('../../assets/img/nord3.png')
+        default: require('../../assets/img/nord3.png'),
     },
     num_liked: Number,
-    num_shared: Number
+    num_shared: Number,
 })
 
 module.exports = mongoose.model('Album', AlbumSchema)
