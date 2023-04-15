@@ -1,3 +1,0 @@
-exports.favoriteSong = (req, res) => {
-    
-}

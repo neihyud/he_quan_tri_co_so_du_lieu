@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
-const config = require('../config/index')
+const { config } = require('../config/index')
 const bcrypt = require('bcrypt')
 
 exports.loginUser = async (req, res) => {
@@ -29,7 +29,7 @@ exports.loginUser = async (req, res) => {
         }
 
         const accessToken = jwt.sign(
-            { userId: account._id, role: account.role },
+            { userId: user._id },
             config.accessTokenSecret
         )
 
@@ -50,6 +50,7 @@ exports.loginUser = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
     const { username = 'User', email = '', password = '' } = req.body
+    console.log('body: ', req.body)
 
     try {
         const user = await User.findOne({ email })
@@ -77,14 +78,14 @@ exports.registerUser = async (req, res) => {
             process.env.ACCESS_TOKEN_SECRET
         )
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: 'Register Successfully',
             accessToken,
         })
     } catch (error) {
         console.log(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Internal server error',
         })

@@ -3,12 +3,17 @@ const Schema = mongoose.Schema
 
 const ArtistSchema = new Schema({
     name: String,
-    description: String, 
+    description: String,
     thumbnail: {
         type: String,
-        default: require('../../assets/img/nord3.png')
+        default: '../../assets/img/n.png',
     },
-    song: [mongoose.Types.Schema],
+    song: [
+        {
+            type: mongoose.Types.ObjectId,
+            ref: 'Song',
+        },
+    ],
     num_liked: Number,
     num_shared: Number,
 })

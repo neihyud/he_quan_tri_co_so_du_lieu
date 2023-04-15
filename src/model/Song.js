@@ -11,10 +11,10 @@ const SongSchema = new Schema({
     },
     thumbnail: {
         type: String,
-        default: require('../../assets/img/nord3.png'),
+        default: '../../assets/img/n.png',
     },
     artist: {
-        type: mongoose.Types.ObjectId,
+        type: [mongoose.Types.ObjectId],
         ref: 'Artist',
     },
     env: String,

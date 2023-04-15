@@ -6,9 +6,8 @@ mongodb.connect()
 
 app.use(express.json())
 
-
 const port = 8080
 
-app.use('/', require("./src/app.routes"))
+app.use('/', require('./src/app.routes'))
 
 app.listen(port, () => console.log(`Listening on port ${port}`))

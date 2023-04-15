@@ -18,7 +18,7 @@ const UserSchema = new Schema({
     },
     avatar: {
         type: String,
-        default: require('../../assets/img/nord3.png'),
+        default: '../../assets/img/n.png',
     },
     favorite_song: {
         type: [mongoose.Types.ObjectId],
