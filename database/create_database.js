@@ -8,6 +8,7 @@ const Artist = require('../src/model/Artist')
 const Song = require('../src/model/Song')
 const Album = require('../src/model/Album')
 const Playlist = require('../src/model/Playlist')
+const Notify = require('../src/model/Notify')
 mongodb.connect()
 
 app.use(express.json())
@@ -72,6 +73,18 @@ app.get('/playlist', async (req, res) => {
 app.post('/playlist', async (req, res) => {
     try {
         await new Playlist({
+            ...req.body,
+        }).save()
+
+        return res.json({ success: true })
+    } catch (error) {
+        res.status(500).json({ messages: error })
+    }
+})
+
+app.post('/notify', async (req, res) => {
+    try {
+        await new Notify({
             ...req.body,
         }).save()
 

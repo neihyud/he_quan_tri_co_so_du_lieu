@@ -40,7 +40,18 @@ exports.getAlbum = async (req, res) => {
     const { id: album_id = '' } = req.params
 
     try {
-        const album = await Album.findOne({ _id: album_id }).lean()
+        const album = await Album.findOne({ _id: album_id })
+            .populate({
+                path: 'artist',
+                select: '_id name thumbnail',
+                options: { strictPopulate: false },
+            })
+            .populate({
+                path: 'song',
+                select: '_id name audio_filepath thumbnail',
+                options: { strictPopulate: false },
+            })
+            .lean()
 
         if (!album) {
             return res.status(401).json({
@@ -63,7 +74,12 @@ exports.getArtist = async (req, res) => {
     const { id: artist_id = '' } = req.params
 
     try {
-        const artist = await Artist.findOne({ _id: artist_id }).lean()
+        const artist = await Artist.findOne({ _id: artist_id })
+            .populate({
+                path: 'song',
+                select: '_id name thumbnail audio_filepath',
+            })
+            .lean()
 
         if (!artist) {
             return res.status(401).json({
@@ -85,16 +101,16 @@ exports.getArtist = async (req, res) => {
 exports.increaseView = async (req, res) => {
     try {
         const { id: song_id = '' } = req.params
-        const updateViewSong = Song.findOneAndUpdate(
+        const updateViewSong = await Song.findOneAndUpdate(
             { _id: song_id },
             { $inc: { view: 1 } }
         )
 
-        const updateView = View.create({
-            _id: song_id,
+        const updateView = await View.create({
+            song_id: song_id,
         })
 
-        await Promise.all([updateViewSong, updateView])
+        // await Promise.all([updateViewSong, updateView])
 
         res.status(200).json({
             success: true,
@@ -233,7 +249,7 @@ exports.getTopSongFavorite = async (req, res) => {
             },
         ])
             .populate({
-                path: 'Song',
+                path: 'song',
                 select: '_id name thumbnail',
             })
             .lean()
@@ -272,10 +288,25 @@ exports.getAllNotify = async (req, res) => {
 exports.getNotifyDetail = async (req, res) => {
     const { type = 'song', id } = req.params
 
-    let data = null
-    if (type=='song') {
-        data = await Song.findOne({_id: id})
-    } else {
-        data = await Album.findOne({_id: id}).p
+    try {
+        let data = null
+        if (type == 'song') {
+            data = await Song.findOne({ _id: id }).lean()
+        } else {
+            data = await Album.findOne({ _id: id })
+                .populate({
+                    path: 'song',
+                    select: '_id name thumbnail audio_filepath',
+                })
+                .lean()
+        }
+
+        res.status(200).json({ message: true, data })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
     }
 }
