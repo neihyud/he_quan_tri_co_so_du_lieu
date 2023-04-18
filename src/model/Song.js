@@ -5,6 +5,7 @@ const SongSchema = new Schema({
     name: {
         type: String,
         required: true,
+        index: true,
     },
     album: {
         type: String,
@@ -22,5 +23,7 @@ const SongSchema = new Schema({
     lyric: String,
     view: Number,
 })
+
+SongSchema.index({ name: 'text' })
 
 module.exports = mongoose.model('Song', SongSchema)

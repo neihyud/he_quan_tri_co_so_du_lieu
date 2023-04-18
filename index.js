@@ -6,7 +6,7 @@ mongodb.connect()
 
 app.use(express.json())
 
-const port = 8080
+const port = 8082
 
 app.use('/', require('./src/app.routes'))
 

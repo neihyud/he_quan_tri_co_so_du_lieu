@@ -6,6 +6,7 @@ const User = require('../model/User')
 const PlayList = require('../model/Playlist')
 const View = require('../model/View')
 const Notify = require('../model/Notify')
+const Playlist = require('../model/Playlist')
 
 exports.getAllSong = async (req, res) => {
     const songs = await Song.find({}).lean()
@@ -221,7 +222,39 @@ exports.addPlaylistFavorite = async (req, res) => {
     })
 }
 
-exports.createPlaylistUser = async (req, res) => {}
+exports.createPlaylistUser = async (req, res) => {
+    const { user_id = '', playlist_name = '', id_songs = [] } = req.body
+
+    try {
+        const user = await User.find({ id: user_id }).lean()
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found',
+            })
+        }
+
+        const playlist = new Playlist({
+            name: playlist_name,
+            user_id: user_id,
+            songs: id_songs,
+        })
+
+        await playlist.save()
+
+        return res.status(200).json({
+            success: true,
+            message: 'create playlist user success',
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
+    }
+}
 
 exports.getTopSongFavorite = async (req, res) => {
     try {
@@ -309,4 +342,20 @@ exports.getNotifyDetail = async (req, res) => {
             error,
         })
     }
+}
+
+exports.search = async (req, res) => {
+    const { q = '' } = req.query
+
+    const songs = await Song.find({
+        $or: [{ $text: { $search: q } }, { artist: { $in: [q] } }],
+    })
+        .populate({
+            path: 'artist',
+            select: 'name',
+        })
+        // const user
+
+        .res.status(200)
+        .json({ message: true, data: songs })
 }

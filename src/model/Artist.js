@@ -2,7 +2,9 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const ArtistSchema = new Schema({
-    name: String,
+    name: {
+        type: String,
+    },
     description: String,
     thumbnail: {
         type: String,

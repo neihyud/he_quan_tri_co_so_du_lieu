@@ -10,7 +10,7 @@ router.post('/register', authController.registerUser)
 const music = require('../src/controller/music')
 
 // get all song => hien thi tat ca cac bai hat
-router.get('/song', music.getAllSong) 
+router.get('/song', music.getAllSong)
 
 // can add transaction
 router.get('/song/top', music.getTopSongFavorite)
@@ -35,7 +35,7 @@ router.get('/notify', music.getAllNotify)
 // lay thong tin chi tiet ve hat hat or album
 router.get('/notify/:type/:id', music.getNotifyDetail)
 
-// khi nguoi dung like nghe si ho yeu thich thi se tang luot thich cua nghe si 
+// khi nguoi dung like nghe si ho yeu thich thi se tang luot thich cua nghe si
 // va luu nghe si yeu thich cho ng dung
 router.post('/artist/liked', music.updateLikedArtist)
 
@@ -44,5 +44,12 @@ router.post('/artist/shared', music.updateSharedArtist)
 
 // them mot playlist (co san ) vao danh sach playlist yeu thich
 router.post('/user/add-playlist', music.addPlaylistFavorite)
+
+// user create playlist
+router.post('/user/playlist', music.createPlaylistUser)
+
+
+// search
+router.get('/search', music.search)
 
 module.exports = router
