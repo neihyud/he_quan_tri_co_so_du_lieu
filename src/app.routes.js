@@ -48,7 +48,6 @@ router.post('/user/add-playlist', music.addPlaylistFavorite)
 // user create playlist
 router.post('/user/playlist', music.createPlaylistUser)
 
-
 // search
 router.get('/search', music.search)
 

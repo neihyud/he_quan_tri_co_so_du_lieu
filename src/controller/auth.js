@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken')
 const User = require('../model/User')
 const { config } = require('../config/index')
 const bcrypt = require('bcrypt')
+const { randomBytes } = require('node:crypto')
+const { verificationEmailOptions } = require('../service/email')
 
 exports.loginUser = async (req, res) => {
     const { email = '', password = '' } = req.body
@@ -90,4 +92,30 @@ exports.registerUser = async (req, res) => {
             message: 'Internal server error',
         })
     }
+}
+
+exports.forgetPassword = async (req, res) => {
+    const { email = '' } = req.body
+
+    try {
+        const user = await User.findOne({ email: email }).lean()
+
+        if (!user) {
+            res.status(400).json({ success: false, message: 'Email not exist' })
+        }
+
+        const token = randomBytes(6).toString('hex')
+        const emailRegistration = await new regitEmail({
+            id_user: _user._id,
+            otp: token,
+            email: _user.email,
+        }).save()
+
+        await transporter.sendMail(
+            verificationEmailOptions(
+                emailRegistration.email,
+                emailRegistration.otp
+            )
+        )
+    } catch (error) {}
 }
