@@ -168,3 +168,36 @@ exports.updateLikedArtist = async (req, res) => {
         message: 'update liked artist success',
     })
 }
+
+exports.deleteSongPlaylist = async (req, res) => {
+    const { user_id = '', playlist_id = '', song_id = '' } = req.body
+
+    try {
+        const playlist = await PlayList.findOneAndUpdate(
+            { _id: playlist_id, user_id: user_id },
+            {
+                $pull: {
+                    songs: song_id,
+                },
+            }
+        )
+
+        if (!playlist) {
+            res.status(400).json({
+                success: false,
+                message: 'Playlist not found',
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'remove success',
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
+    }
+}

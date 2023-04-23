@@ -67,6 +67,8 @@ router.post('/user/playlist', user.createPlaylistUser)
 // user favorite
 router.post('/user/favorite-song', user.getUserFavorite)
 
+router.post('/user/delete-song-from-playlist', user.deleteSongPlaylist)
+
 // user playlist
 router.post('user/get-playlist', user.getUserPlaylist)
 
