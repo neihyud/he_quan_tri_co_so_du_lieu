@@ -40,18 +40,17 @@ app.post('/artist', async (req, res) => {
 
         await new Song({
             _id: id,
-            name: 'test',
+            name: '01',
             artist: [ar._id],
-            env: 'RAP',
+            env: 'VN',
             audio_filepath:
                 'https://firebasestorage.googleapis.com/v0/b/music-app-2e474.appspot.com/o/01%2000%20Intro%20%20RPT%20MCK%20%2099%20the%20album.mp3?alt=media&token=6145a003-43f6-42bd-96b5-45cd95eb6452',
             view: 1,
         }).save()
+        return res.status(200).json({ messages: true, data: ar })
     } catch (error) {
         return res.status(200).json({ messages: false, error })
     }
-
-    return res.status(200).json({ messages: true })
 })
 
 app.post('/album', async (req, res) => {

@@ -13,6 +13,7 @@ const PlaylistSchema = new Schema({
     },
     songs: {
         type: [mongoose.Types.ObjectId],
+        default: [],
         ref: 'Song',
     },
 })

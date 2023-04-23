@@ -20,4 +20,6 @@ const ArtistSchema = new Schema({
     num_shared: Number,
 })
 
+ArtistSchema.index({ name: 'text' })
+
 module.exports = mongoose.model('Artist', ArtistSchema)

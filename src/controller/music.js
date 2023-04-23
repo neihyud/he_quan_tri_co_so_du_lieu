@@ -99,15 +99,13 @@ exports.getArtist = async (req, res) => {
     }
 }
 
+// transaction => them sau
 exports.increaseView = async (req, res) => {
     try {
         const { id: song_id = '' } = req.params
-        const updateViewSong = await Song.findOneAndUpdate(
-            { _id: song_id },
-            { $inc: { view: 1 } }
-        )
+        await Song.findOneAndUpdate({ _id: song_id }, { $inc: { view: 1 } })
 
-        const updateView = await View.create({
+        await View.create({
             song_id: song_id,
         })
 
@@ -123,49 +121,6 @@ exports.increaseView = async (req, res) => {
             error,
         })
     }
-}
-
-exports.updateLikedArtist = async (req, res) => {
-    const { user_id = '', artist_id = '' } = req.body
-
-    const artist = await Artist.findOne({ _id: artist_id }).lean().select('_id')
-
-    if (!artist) {
-        return res.status(401).json({
-            success: false,
-            message: 'Artist not found',
-        })
-    }
-
-    const user = await User.findOne({
-        _id: user_id,
-        favorite_artist: artist_id,
-    })
-
-    if (user) {
-        await User.updateOne(
-            { _id: user_id },
-            { $pull: { favorite_artist: artist_id } }
-        )
-
-        await Artist.updateOne({ _id: artist_id }, { $inc: { num_liked: -1 } })
-    } else {
-        await User.updateOne(
-            { _id: user_id },
-            {
-                $push: {
-                    favorite_artist: artist_id,
-                },
-            }
-        )
-
-        await Artist.updateOne({ _id: artist_id }, { $inc: { num_liked: 1 } })
-    }
-
-    res.status(200).json({
-        success: true,
-        message: 'update liked artist success',
-    })
 }
 
 exports.updateSharedArtist = async (req, res) => {
@@ -190,65 +145,6 @@ exports.updateSharedArtist = async (req, res) => {
         })
     } catch (error) {
         res.status(500).json({
-            success: false,
-            message: 'Internal Error',
-            error,
-        })
-    }
-}
-
-exports.addPlaylistFavorite = async (req, res) => {
-    const { user_id = '', playlist_id = '' } = req.body
-
-    const playlist = await User.findOneAndUpdate(
-        { _id: user_id },
-        {
-            $push: {
-                playlist: playlist_id,
-            },
-        }
-    )
-
-    if (!playlist) {
-        return res.status(401).json({
-            success: false,
-            message: 'Playlist not found',
-        })
-    }
-
-    res.status(200).json({
-        success: true,
-        message: 'update playlist success',
-    })
-}
-
-exports.createPlaylistUser = async (req, res) => {
-    const { user_id = '', playlist_name = '', id_songs = [] } = req.body
-
-    try {
-        const user = await User.find({ id: user_id }).lean()
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'User not found',
-            })
-        }
-
-        const playlist = new Playlist({
-            name: playlist_name,
-            user_id: user_id,
-            songs: id_songs,
-        })
-
-        await playlist.save()
-
-        return res.status(200).json({
-            success: true,
-            message: 'create playlist user success',
-        })
-    } catch (error) {
-        return res.status(500).json({
             success: false,
             message: 'Internal Error',
             error,
@@ -303,10 +199,9 @@ exports.getTopSongFavorite = async (req, res) => {
 
 exports.getAllNotify = async (req, res) => {
     try {
-        const notify = await Notify.find({})
+        const notify = await Notify.find({}).lean()
         res.status(200).json({
             success: true,
-            message: 'update liked artist success',
             data: notify,
         })
     } catch (error) {
@@ -319,18 +214,21 @@ exports.getAllNotify = async (req, res) => {
 }
 
 exports.getNotifyDetail = async (req, res) => {
-    const { type = 'song', id } = req.params
+    const { type = 'Player', id } = req.params
 
     try {
         let data = null
-        if (type == 'song') {
+        if (type == 'Player') {
             data = await Song.findOne({ _id: id }).lean()
-        } else {
+        } else if ((type = 'TheArtist')) {
             data = await Album.findOne({ _id: id })
                 .populate({
                     path: 'song',
                     select: '_id name thumbnail audio_filepath',
                 })
+                .lean()
+        } else {
+            data = await Artist.findOne({ _id: id })
                 .lean()
         }
 
@@ -347,15 +245,59 @@ exports.getNotifyDetail = async (req, res) => {
 exports.search = async (req, res) => {
     const { q = '' } = req.query
 
-    const songs = await Song.find({
-        $or: [{ $text: { $search: q } }, { artist: { $in: [q] } }],
-    })
-        .populate({
-            path: 'artist',
-            select: 'name',
-        })
-        // const user
+    try {
+        const songs = Song.find({ $text: { $search: q } }).select('name')
+        const artists = Artist.find({ $text: { $search: q } })
+            .populate({
+                path: 'song',
+                select: 'name',
+            })
+            .select('name')
 
-        .res.status(200)
-        .json({ message: true, data: songs })
+        const data = await Promise.all([songs, artists])
+
+        res.status(200).json({ message: true, data: data })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
+    }
+}
+
+exports.getTopAlbum = async (req, res) => {
+    try {
+        const albums = await Album.find({})
+            .select('name thumbnail song')
+            .sort({ num_liked: -1 })
+            .limit(6)
+            .lean()
+
+        return res.json({ success: true, data: albums })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
+    }
+}
+
+exports.getTopArtist = async (req, res) => {
+    try {
+        const artists = await Artist.find({})
+            .select('name thumbnail')
+            .sort({ num_liked: -1 })
+            .limit(6)
+            .lean()
+
+        return res.json({ success: true, data: artists })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Error',
+            error,
+        })
+    }
 }

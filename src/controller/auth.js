@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
+const OtpEmail = require('../model/OtpEmail')
 const { config } = require('../config/index')
 const bcrypt = require('bcrypt')
 const { randomBytes } = require('node:crypto')
-const { verificationEmailOptions } = require('../service/email')
+const { resetPasswordEmailOptions, transporter } = require('../service/email')
 
 exports.loginUser = async (req, res) => {
     const { email = '', password = '' } = req.body
@@ -84,6 +85,7 @@ exports.registerUser = async (req, res) => {
             success: true,
             message: 'Register Successfully',
             accessToken,
+            user: newUser,
         })
     } catch (error) {
         console.log(error)
@@ -98,24 +100,86 @@ exports.forgetPassword = async (req, res) => {
     const { email = '' } = req.body
 
     try {
-        const user = await User.findOne({ email: email }).lean()
+        const user = await User.findOne({ email: email }).select('email').lean()
 
         if (!user) {
             res.status(400).json({ success: false, message: 'Email not exist' })
         }
 
         const token = randomBytes(6).toString('hex')
-        const emailRegistration = await new regitEmail({
-            id_user: _user._id,
+        const emailOtp = await new OtpEmail({
+            user_id: user._id,
             otp: token,
-            email: _user.email,
+            email: user.email,
         }).save()
 
         await transporter.sendMail(
-            verificationEmailOptions(
-                emailRegistration.email,
-                emailRegistration.otp
-            )
+            resetPasswordEmailOptions(emailOtp.email, emailOtp.otp),
+            function (error, info) {
+                if (error) {
+                    console.log(error)
+                } else {
+                    console.log('Email sent: ' + info.response)
+                }
+            }
         )
-    } catch (error) {}
+
+        return res.status(200).json({ success: true })
+    } catch (error) {
+        return res.json(500).json({ success: false, error })
+    }
+}
+
+exports.checkOtpEmail = async (req, res) => {
+    const { opt = '' } = req.body
+
+    try {
+        const isExistOtp = await OtpEmail.find({
+            opt: opt,
+            time: { $gte: new Date(Date.now() - 10 * 60 * 1000) },
+        })
+
+        if (!isExistOtp) {
+            res.status(400).json({ success: false, message: 'opt invalid' })
+        }
+
+        res.status(200).json({ success: true })
+    } catch (error) {
+        return res.json(500).json({ success: false, error })
+    }
+}
+
+exports.resetPassword = async (req, res) => {
+    const { password = '', user_id = '' } = req.body
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { _id: user_id },
+            { password: password }
+        )
+        if (!user) {
+            res.json({ success: false, message: 'User not found' })
+        }
+        res.json({ success: true, message: 'update success' })
+    } catch (error) {
+        return res.json(500).json({ success: false, error })
+    }
+}
+
+exports.changePassword = async (req, res) => {
+    const { user_id = '', password = '', newPassword = '' } = req.body
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { _id: user_id, password: password },
+            { password: newPassword }
+        )
+
+        if (!user) {
+            res.json({ success: false, message: 'User not found' })
+        }
+        res.json({ success: true, message: 'update success' })
+    } catch (error) {
+        return res.json(500).json({ success: false, error })
+    }
 }
