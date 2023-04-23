@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { Schema } = mongoose;
+const { Schema } = mongoose
 
 const OtpEmailSchema = new Schema({
     email: String,
@@ -7,8 +7,13 @@ const OtpEmailSchema = new Schema({
     otp: String,
     time: {
         type: Date,
-        default: Date.now()
-    }
+        default: Date.now(),
+    },
+    expireAt: {
+        type: Date,
+        default: Date.now,
+        index: { expires: '10m' },
+    },
 })
 
-module.exports = mongoose.model('OtpEmail', OtpEmailSchema);;
+module.exports = mongoose.model('OtpEmail', OtpEmailSchema)
