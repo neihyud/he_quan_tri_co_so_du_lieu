@@ -164,7 +164,7 @@ exports.getTopSongFavorite = async (req, res) => {
             },
             {
                 $group: {
-                    _id: '$_id',
+                    _id: '$song_id',
                     favorite: { $sum: 1 },
                 },
             },
@@ -174,14 +174,26 @@ exports.getTopSongFavorite = async (req, res) => {
                 },
             },
             {
-                $limit: 10,
+                $limit: 6,
             },
+            {
+                $lookup: {
+                    from: 'songs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'song',
+                },
+            },
+            {
+                $unwind: '$song',
+            },
+            {
+                $project: {
+                    name: "$song.name",
+                    thumbnail: "$song.thumbnail"
+                }
+            }
         ])
-            .populate({
-                path: 'song',
-                select: '_id name thumbnail',
-            })
-            .lean()
 
         return res.status(200).json({
             success: true,
@@ -219,7 +231,9 @@ exports.getNotifyDetail = async (req, res) => {
     try {
         let data = null
         if (type == 'Player') {
-            data = await Song.findOne({ _id: id }).select('name audio_filepath').lean()
+            data = await Song.findOne({ _id: id })
+                .select('name audio_filepath')
+                .lean()
         } else if (type == 'TheAlbum') {
             data = await Album.findOne({ _id: id })
                 .populate({
@@ -304,10 +318,13 @@ exports.getTopArtist = async (req, res) => {
 exports.getSongFromPlaylist = async (req, res) => {
     const { id = '' } = req.params
     try {
-        const songs = await PlayList.findOne({ _id: id }).populate({
-            path: 'songs',
-            select: 'name audio_filepath',
-        }).select('songs').lean()
+        const songs = await PlayList.findOne({ _id: id })
+            .populate({
+                path: 'songs',
+                select: 'name audio_filepath',
+            })
+            .select('songs')
+            .lean()
 
         return res.status(200).json({
             success: true,
