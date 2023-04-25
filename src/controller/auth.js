@@ -36,15 +36,14 @@ exports.loginUser = async (req, res) => {
             config.accessTokenSecret
         )
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'Login successful',
             user,
             accessToken: accessToken,
         })
     } catch (error) {
-        console.log(error)
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Internal server error',
         })
@@ -77,7 +76,7 @@ exports.registerUser = async (req, res) => {
 
         // Return token
         const accessToken = jwt.sign(
-            { userId: newUser._id, role: newUser.role },
+            { userId: newUser._id },
             process.env.ACCESS_TOKEN_SECRET
         )
 
@@ -103,7 +102,7 @@ exports.forgetPassword = async (req, res) => {
         const user = await User.findOne({ email: email }).select('email').lean()
 
         if (!user) {
-            res.status(400).json({ success: false, message: 'Email not exist' })
+            return res.status(400).json({ success: false, message: 'Email not exist' })
         }
 
         const token = randomBytes(6).toString('hex')
@@ -131,19 +130,22 @@ exports.forgetPassword = async (req, res) => {
 }
 
 exports.checkOtpEmail = async (req, res) => {
-    const { opt = '' } = req.body
+    const { otp = '', email = '' } = req.body
 
     try {
-        const isExistOtp = await OtpEmail.find({
-            opt: opt,
+        const isExistOtp = await OtpEmail.findOne({
+            otp: otp,
+            email: email,
             time: { $gte: new Date(Date.now() - 10 * 60 * 1000) },
         })
 
         if (!isExistOtp) {
-            res.status(400).json({ success: false, message: 'opt invalid' })
+            return res
+                .status(400)
+                .json({ success: false, message: 'opt invalid' })
         }
 
-        res.status(200).json({ success: true })
+        return res.status(200).json({ success: true })
     } catch (error) {
         return res.json(500).json({ success: false, error })
     }
@@ -153,14 +155,19 @@ exports.resetPassword = async (req, res) => {
     const { password = '', user_id = '' } = req.body
 
     try {
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(password, salt)
+
         const user = await User.findOneAndUpdate(
             { _id: user_id },
-            { password: password }
+            { password: hashedPassword }
         )
+
         if (!user) {
-            res.json({ success: false, message: 'User not found' })
+           return res.json({ success: false, message: 'User not found' })
         }
-        res.json({ success: true, message: 'update success' })
+
+        return res.json({ success: true, message: 'update success' })
     } catch (error) {
         return res.json(500).json({ success: false, error })
     }
@@ -170,15 +177,39 @@ exports.changePassword = async (req, res) => {
     const { user_id = '', password = '', newPassword = '' } = req.body
 
     try {
-        const user = await User.findOneAndUpdate(
-            { _id: user_id, password: password },
-            { password: newPassword }
-        )
+        const user = await User.findOne({ _id: user_id })
+            .select('_id password')
+            .lean()
 
         if (!user) {
-            res.json({ success: false, message: 'User not found' })
+            return res.status(400).json({ success: false, message: 'User not found' })
         }
-        res.json({ success: true, message: 'update success' })
+
+        const passwordValid = await bcrypt.compare(password, user.password)
+
+        if (!passwordValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password invalid',
+            })
+        }
+
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+        const newUser = await User.updateOne(
+            { _id: user_id },
+            { password: hashedPassword }
+        ).lean()
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'User not found',
+                data: newUser.password,
+            })
+        }
+        return res.json({ success: true, message: 'update success' })
     } catch (error) {
         return res.json(500).json({ success: false, error })
     }

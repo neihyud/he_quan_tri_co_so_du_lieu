@@ -75,4 +75,6 @@ router.post('user/get-playlist', user.getUserPlaylist)
 // search
 router.get('/search', music.search)
 
+router.get('/playlist/:id', music.getSongFromPlaylist)
+
 module.exports = router

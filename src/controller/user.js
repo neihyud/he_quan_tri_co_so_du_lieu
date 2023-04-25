@@ -17,9 +17,9 @@ exports.getUserFavorite = async (req, res) => {
             .select('name')
             .lean()
 
-        res.json({ success: true, data: songs })
+        return res.json({ success: true, data: songs })
     } catch (error) {
-        res.json({ success: false, message: 'Server error' })
+        return res.json({ success: false, message: 'Server error' })
     }
 }
 
@@ -33,9 +33,9 @@ exports.getUserPlaylist = async (req, res) => {
             .select('name user_id')
             .lean()
 
-        res.json({ success: true, data: songs })
+        return res.json({ success: true, data: songs })
     } catch (error) {
-        res.json({ success: false, message: 'Server error' })
+        return res.json({ success: false, message: 'Server error' })
     }
 }
 
@@ -59,12 +59,12 @@ exports.addSongToPlaylist = async (req, res) => {
             })
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'update playlist success',
         })
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error' })
+        return res.status(500).json({ success: false, message: 'Server error' })
     }
 }
 
@@ -120,7 +120,7 @@ exports.addPlaylistFavorite = async (req, res) => {
         })
     }
 
-    res.status(200).json({
+    return res.status(200).json({
         success: true,
         message: 'update playlist success',
     })
@@ -163,7 +163,7 @@ exports.updateLikedArtist = async (req, res) => {
         await Artist.updateOne({ _id: artist_id }, { $inc: { num_liked: 1 } })
     }
 
-    res.status(200).json({
+    return res.status(200).json({
         success: true,
         message: 'update liked artist success',
     })
@@ -183,13 +183,13 @@ exports.deleteSongPlaylist = async (req, res) => {
         )
 
         if (!playlist) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Playlist not found',
             })
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'remove success',
         })

@@ -60,13 +60,13 @@ app.post('/album', async (req, res) => {
         }).save()
         return res.status.json({ success: true })
     } catch (error) {
-        res.status(500).json({ messages: error })
+       return res.status(500).json({ messages: error })
     }
 })
 
 app.get('/playlist', async (req, res) => {
     const playlists = await Playlist.find({})
-    res.json({ success: true, data: playlists })
+    return res.json({ success: true, data: playlists })
 })
 
 app.post('/playlist', async (req, res) => {
@@ -77,7 +77,7 @@ app.post('/playlist', async (req, res) => {
 
         return res.json({ success: true })
     } catch (error) {
-        res.status(500).json({ messages: error })
+        return res.status(500).json({ messages: error })
     }
 })
 
@@ -89,7 +89,7 @@ app.post('/notify', async (req, res) => {
 
         return res.json({ success: true })
     } catch (error) {
-        res.status(500).json({ messages: error })
+       return res.status(500).json({ messages: error })
     }
 })
 app.listen(8081, () => console.log(`Listening on port 8081`))
