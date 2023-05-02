@@ -101,25 +101,35 @@ exports.getArtist = async (req, res) => {
 
 // transaction => them sau
 exports.increaseView = async (req, res) => {
+    const session = await mongoose.startSession()
+    session.startTransaction()
     try {
+        const opts = { session, returnOriginal: false }
         const { id: song_id = '' } = req.params
-        await Song.findOneAndUpdate({ _id: song_id }, { $inc: { view: 1 } })
+
+        await Song.findOneAndUpdate(
+            { _id: song_id },
+            { $inc: { view: 1 } },
+            opts
+        )
 
         await View.create({
-            song_id: song_id,
-        })
+            song_id: id,
+        }, opts)
 
-        // await Promise.all([updateViewSong, updateView])
-
+        await session.commitTransaction()
         return res.status(200).json({
             success: true,
         })
     } catch (error) {
+        await session.abortTransaction()
         return res.status(500).json({
             success: false,
             message: 'Internal Error',
             error,
         })
+    } finally {
+        session.endSession()
     }
 }
 
@@ -189,10 +199,10 @@ exports.getTopSongFavorite = async (req, res) => {
             },
             {
                 $project: {
-                    name: "$song.name",
-                    thumbnail: "$song.thumbnail"
-                }
-            }
+                    name: '$song.name',
+                    thumbnail: '$song.thumbnail',
+                },
+            },
         ])
 
         return res.status(200).json({
