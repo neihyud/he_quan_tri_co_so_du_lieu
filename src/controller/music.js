@@ -99,7 +99,6 @@ exports.getArtist = async (req, res) => {
     }
 }
 
-// transaction => them sau
 exports.increaseView = async (req, res) => {
     const session = await mongoose.startSession()
     session.startTransaction()
@@ -110,12 +109,14 @@ exports.increaseView = async (req, res) => {
         await Song.findOneAndUpdate(
             { _id: song_id },
             { $inc: { view: 1 } },
-            opts
+            { session }
         )
 
-        await View.create({
-            song_id: id,
-        }, opts)
+        const view = new View({
+            song_id: song_id,
+        })
+
+        await view.save({ session })
 
         await session.commitTransaction()
         return res.status(200).json({

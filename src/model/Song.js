@@ -10,7 +10,7 @@ const SongSchema = new Schema({
     album: {
         type: String,
     },
-    thumbnail: {
+    artwork: {
         type: String,
         default: '../../assets/img/n.png',
     },
