@@ -11,7 +11,7 @@ const PlaylistSchema = new Schema({
         type: String,
         default: '../../assets/img/n.png',
     },
-    songs: {
+    list_of_songs: {
         type: [mongoose.Types.ObjectId],
         default: [],
         ref: 'Song',

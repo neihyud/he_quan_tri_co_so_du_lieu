@@ -3,11 +3,11 @@ const Schema = mongoose.Schema
 
 const AlbumSchema = new Schema({
     name: String,
-    artist: {
+    artist_id: {
         type: mongoose.Types.ObjectId,
         ref: 'Artist',
     },
-    songs: {
+    list_of_songs: {
         type: [mongoose.Types.ObjectId],
         ref: 'Song',
     },

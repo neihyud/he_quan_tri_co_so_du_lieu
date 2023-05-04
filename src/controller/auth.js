@@ -12,7 +12,7 @@ exports.loginUser = async (req, res) => {
     if (!email.trim() || !password.trim()) {
         return res.status(400).json({
             success: false,
-            message: 'Missing username and/or password',
+            message: 'Khoong tim',
         })
     }
 
@@ -21,7 +21,7 @@ exports.loginUser = async (req, res) => {
         if (!user) {
             return res
                 .status(400)
-                .json({ success: false, message: 'User not found' })
+                .json({ success: false, message: 'Không tìm thấy User' })
         }
 
         const passwordValid = await bcrypt.compare(password, user.password)
@@ -45,7 +45,7 @@ exports.loginUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: 'Internal Lỗi bên trong ',
         })
     }
 }
@@ -90,7 +90,7 @@ exports.registerUser = async (req, res) => {
         console.log(error)
         return res.status(500).json({
             success: false,
-            message: 'Internal server error',
+            message: 'Internal Lỗi bên trong ',
         })
     }
 }
@@ -102,7 +102,9 @@ exports.forgetPassword = async (req, res) => {
         const user = await User.findOne({ email: email }).select('email').lean()
 
         if (!user) {
-            return res.status(400).json({ success: false, message: 'Email not exist' })
+            return res
+                .status(400)
+                .json({ success: false, message: 'Email not exist' })
         }
 
         const token = randomBytes(6).toString('hex')
@@ -164,7 +166,7 @@ exports.resetPassword = async (req, res) => {
         )
 
         if (!user) {
-           return res.json({ success: false, message: 'User not found' })
+            return res.json({ success: false, message: 'Không tìm thấy User' })
         }
 
         return res.json({ success: true, message: 'update success' })
@@ -182,7 +184,9 @@ exports.changePassword = async (req, res) => {
             .lean()
 
         if (!user) {
-            return res.status(400).json({ success: false, message: 'User not found' })
+            return res
+                .status(400)
+                .json({ success: false, message: 'Không tìm thấy User' })
         }
 
         const passwordValid = await bcrypt.compare(password, user.password)
@@ -205,7 +209,7 @@ exports.changePassword = async (req, res) => {
         if (!user) {
             return res.json({
                 success: false,
-                message: 'User not found',
+                message: 'Không tìm thấy User',
                 data: newUser.password,
             })
         }

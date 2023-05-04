@@ -5,18 +5,18 @@ const ArtistSchema = new Schema({
     name: {
         type: String,
     },
-    description: String,
+    about: String,
     thumbnail: {
         type: String,
         default: '../../assets/img/n.png',
     },
-    song: [
+    list_of_songs: [
         {
             type: mongoose.Types.ObjectId,
             ref: 'Song',
         },
     ],
-    num_liked: Number,
+    followers: Number,
     num_shared: Number,
 })
 

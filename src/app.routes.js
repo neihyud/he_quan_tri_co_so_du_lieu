@@ -39,19 +39,17 @@ router.get('/album/:id', music.getAlbum)
 router.get('/artist/:id', music.getArtist)
 
 // tat ca thong bao hien thi
-// type: kieu 'song' => link bai hat
-//              'album => link album
 router.get('/notify', music.getAllNotify)
 
 // lay thong tin chi tiet ve hat hat or album
 router.get('/notify/:type/:id', music.getNotifyDetail)
 
+// khi ng dung click vao chuc nang share
+router.put('/artist/shared', music.updateSharedArtist)
+
 // khi nguoi dung like nghe si ho yeu thich thi se tang luot thich cua nghe si
 // va luu nghe si yeu thich cho ng dung
 router.put('/user/liked', user.updateLikedArtist)
-
-// khi ng dung click vao chuc nang share
-router.put('/artist/shared', music.updateSharedArtist)
 
 // USER
 

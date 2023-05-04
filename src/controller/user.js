@@ -3,8 +3,6 @@ const Artist = require('../model/Artist')
 const Song = require('../model/Song')
 const User = require('../model/User')
 const PlayList = require('../model/Playlist')
-const View = require('../model/View')
-const Notify = require('../model/Notify')
 const Playlist = require('../model/Playlist')
 
 exports.getUserFavorite = async (req, res) => {
@@ -19,7 +17,7 @@ exports.getUserFavorite = async (req, res) => {
 
         return res.json({ success: true, data: songs })
     } catch (error) {
-        return res.json({ success: false, message: 'Server error' })
+        return res.json({ success: false, message: 'Lỗi bên trong ' })
     }
 }
 
@@ -35,7 +33,7 @@ exports.getUserPlaylist = async (req, res) => {
 
         return res.json({ success: true, data: songs })
     } catch (error) {
-        return res.json({ success: false, message: 'Server error' })
+        return res.json({ success: false, message: 'Lỗi bên trong ' })
     }
 }
 
@@ -47,7 +45,7 @@ exports.addSongToPlaylist = async (req, res) => {
             { _id: playlist_id, user_id: user_id },
             {
                 $push: {
-                    song: song_id,
+                    list_of_songs: song_id,
                 },
             }
         )
@@ -55,29 +53,30 @@ exports.addSongToPlaylist = async (req, res) => {
         if (!playlist) {
             return res.status(401).json({
                 success: false,
-                message: 'Playlist not found',
+                message: 'Không tìm thấy Playlist',
             })
         }
 
         return res.status(200).json({
             success: true,
-            message: 'update playlist success',
+            message: 'Cập nhập playlist thành công',
         })
     } catch (error) {
-        return res.status(500).json({ success: false, message: 'Server error' })
+        return res
+            .status(500)
+            .json({ success: false, message: 'Lỗi bên trong ' })
     }
 }
 
 exports.createPlaylistUser = async (req, res) => {
     const { user_id = '', playlist_name = '' } = req.body
-
     try {
-        const user = await User.find({ id: user_id }).lean()
+        const user = await User.findOne({ id: user_id }).lean()
 
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'User not found',
+                message: 'Không tìm thấy User',
             })
         }
 
@@ -90,12 +89,12 @@ exports.createPlaylistUser = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'create playlist user success',
+            message: 'Tạo playlist thành công',
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Internal Error',
+            message: 'Lỗi bên trong ',
             error,
         })
     }
@@ -116,13 +115,13 @@ exports.addPlaylistFavorite = async (req, res) => {
     if (!playlist) {
         return res.status(401).json({
             success: false,
-            message: 'Playlist not found',
+            message: 'Không tìm thấy Playlist',
         })
     }
 
     return res.status(200).json({
         success: true,
-        message: 'update playlist success',
+        message: 'Cập nhập playlist thành công',
     })
 }
 
@@ -134,7 +133,7 @@ exports.updateLikedArtist = async (req, res) => {
     if (!artist) {
         return res.status(401).json({
             success: false,
-            message: 'Artist not found',
+            message: 'Không tìm thấy nghệ sĩ',
         })
     }
 
@@ -165,7 +164,7 @@ exports.updateLikedArtist = async (req, res) => {
 
     return res.status(200).json({
         success: true,
-        message: 'update liked artist success',
+        message: 'Cập nhập thích artist thành công ',
     })
 }
 
@@ -177,7 +176,7 @@ exports.deleteSongPlaylist = async (req, res) => {
             { _id: playlist_id, user_id: user_id },
             {
                 $pull: {
-                    songs: song_id,
+                    list_of_songs: song_id,
                 },
             }
         )
@@ -185,18 +184,18 @@ exports.deleteSongPlaylist = async (req, res) => {
         if (!playlist) {
             return res.status(400).json({
                 success: false,
-                message: 'Playlist not found',
+                message: 'Không tìm thấy Playlist',
             })
         }
 
         return res.status(200).json({
             success: true,
-            message: 'remove success',
+            message: 'Xóa bài hát trong playlist thành công',
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Internal Error',
+            message: 'Lỗi bên trong ',
             error,
         })
     }
