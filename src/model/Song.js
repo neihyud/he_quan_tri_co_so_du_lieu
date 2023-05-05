@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { getRandomNumber } = require('../helper/random')
 const Schema = mongoose.Schema
 
 const SongSchema = new Schema({
@@ -10,10 +11,13 @@ const SongSchema = new Schema({
     album: {
         type: String,
     },
-    single: "",
+    single: String,
     artwork: {
         type: String,
-        default: '../../assets/img/n.png',
+        default: function () {
+            const random = getRandomNumber(1, 4)
+            return `../../assets/img/nord${random}.png`
+        },
     },
     artist: {
         type: [mongoose.Types.ObjectId],
@@ -22,7 +26,7 @@ const SongSchema = new Schema({
     env: String,
     audio_filepath: String,
     lyric: String,
-    view: Number,
+    views: Number,
 })
 
 SongSchema.index({ name: 'text' })

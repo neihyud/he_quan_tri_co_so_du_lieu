@@ -12,7 +12,7 @@ exports.loginUser = async (req, res) => {
     if (!email.trim() || !password.trim()) {
         return res.status(400).json({
             success: false,
-            message: 'Khoong tim',
+            message: 'Email hoặc Password không được để trống',
         })
     }
 
@@ -28,7 +28,7 @@ exports.loginUser = async (req, res) => {
         if (!passwordValid) {
             return res
                 .status(400)
-                .json({ success: false, message: 'Invalid password' })
+                .json({ success: false, message: 'Mật khẩu không hợp lệ' })
         }
 
         const accessToken = jwt.sign(
@@ -38,14 +38,14 @@ exports.loginUser = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Login successful',
+            message: 'Đăng nhập thành công',
             user,
             accessToken: accessToken,
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Internal Lỗi bên trong ',
+            message: 'Lỗi bên trong ',
         })
     }
 }
@@ -60,7 +60,7 @@ exports.registerUser = async (req, res) => {
         if (user) {
             return res
                 .status(400)
-                .json({ success: false, message: 'Email already taken' })
+                .json({ success: false, message: 'Email đã tồn tại' })
         }
 
         const salt = await bcrypt.genSalt(10)
@@ -82,7 +82,7 @@ exports.registerUser = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: 'Register Successfully',
+            message: 'Đăng ký thành công',
             accessToken,
             user: newUser,
         })
@@ -90,7 +90,7 @@ exports.registerUser = async (req, res) => {
         console.log(error)
         return res.status(500).json({
             success: false,
-            message: 'Internal Lỗi bên trong ',
+            message: 'Lỗi bên trong ',
         })
     }
 }
@@ -104,7 +104,7 @@ exports.forgetPassword = async (req, res) => {
         if (!user) {
             return res
                 .status(400)
-                .json({ success: false, message: 'Email not exist' })
+                .json({ success: false, message: 'Email không tồn tại' })
         }
 
         const token = randomBytes(6).toString('hex')
@@ -114,7 +114,7 @@ exports.forgetPassword = async (req, res) => {
             email: user.email,
         }).save()
 
-        await transporter.sendMail(
+        transporter.sendMail(
             resetPasswordEmailOptions(emailOtp.email, emailOtp.otp),
             function (error, info) {
                 if (error) {
@@ -144,7 +144,7 @@ exports.checkOtpEmail = async (req, res) => {
         if (!isExistOtp) {
             return res
                 .status(400)
-                .json({ success: false, message: 'opt invalid' })
+                .json({ success: false, message: 'Otp không hợp lệ' })
         }
 
         return res.status(200).json({ success: true })
@@ -160,16 +160,29 @@ exports.resetPassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
 
-        const user = await User.findOneAndUpdate(
-            { _id: user_id },
-            { password: hashedPassword }
-        )
+        const user = await User.findOne({ _id: user_id })
+            .select('password')
+            .lean()
 
         if (!user) {
             return res.json({ success: false, message: 'Không tìm thấy User' })
         }
 
-        return res.json({ success: true, message: 'update success' })
+        const isDuplicate = await bcrypt.compare(password, user.password)
+
+        if (isDuplicate) {
+            return res.json({
+                success: false,
+                message: 'Mật khẩu mới giống với mật khẩu cũ',
+            })
+        }
+
+        await User.updateOne({ _id: user_id }, { password: hashedPassword })
+
+        return res.json({
+            success: true,
+            message: 'Cài lại mật khẩu thành công ',
+        })
     } catch (error) {
         return res.json(500).json({ success: false, error })
     }
@@ -179,6 +192,13 @@ exports.changePassword = async (req, res) => {
     const { user_id = '', password = '', newPassword = '' } = req.body
 
     try {
+        if (newPassword == password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mật khẩu mới giống với mật khẩu cũ',
+            })
+        }
+
         const user = await User.findOne({ _id: user_id })
             .select('_id password')
             .lean()
@@ -194,7 +214,7 @@ exports.changePassword = async (req, res) => {
         if (!passwordValid) {
             return res.status(400).json({
                 success: false,
-                message: 'Password invalid',
+                message: 'Mật khẩu không hợp lệ',
             })
         }
 
@@ -213,7 +233,10 @@ exports.changePassword = async (req, res) => {
                 data: newUser.password,
             })
         }
-        return res.json({ success: true, message: 'update success' })
+        return res.json({
+            success: true,
+            message: 'Thay đổi mật khẩu thành công',
+        })
     } catch (error) {
         return res.json(500).json({ success: false, error })
     }

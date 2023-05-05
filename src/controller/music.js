@@ -41,7 +41,7 @@ exports.getAlbum = async (req, res) => {
     try {
         const album = await Album.findOne({ _id: album_id })
             .populate({
-                path: 'artist',
+                path: 'artist_id',
                 select: '_id name thumbnail',
             })
             .populate({
@@ -103,7 +103,7 @@ exports.increaseView = async (req, res) => {
 
         await Song.findOneAndUpdate(
             { _id: song_id },
-            { $inc: { view: 1 } },
+            { $inc: { views: 1 } },
             { session }
         )
 

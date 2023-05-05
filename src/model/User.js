@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { getRandomNumber } = require('../helper/random')
 const Schema = mongoose.Schema
 
 const UserSchema = new Schema({
@@ -18,7 +19,10 @@ const UserSchema = new Schema({
     },
     avatar: {
         type: String,
-        default: '../../assets/img/n.png',
+        default: function () {
+            const random = getRandomNumber(1, 4)
+            return `../../assets/img/nord${random}.png`
+        },
     },
     favorite_song: {
         type: [mongoose.Types.ObjectId],
