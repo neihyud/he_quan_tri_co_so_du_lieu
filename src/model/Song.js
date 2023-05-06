@@ -3,7 +3,7 @@ const { getRandomNumber } = require('../helper/random')
 const Schema = mongoose.Schema
 
 const SongSchema = new Schema({
-    name: {
+    title: {
         type: String,
         required: true,
         index: true,

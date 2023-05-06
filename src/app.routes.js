@@ -19,7 +19,6 @@ const user = require('../src/controller/user')
 // get all song => hien thi tat ca cac bai hat
 router.get('/song', music.getAllSong)
 
-// can add transaction
 router.get('/song/top', music.getTopSongFavorite)
 
 router.get('/album/top', music.getTopAlbum)
@@ -52,7 +51,6 @@ router.put('/artist/shared', music.updateSharedArtist)
 router.put('/user/liked', user.updateLikedArtist)
 
 // USER
-
 // them mot playlist (co san ) vao danh sach playlist yeu thich
 router.put('/user/add-playlist', user.addPlaylistFavorite)
 
@@ -68,7 +66,7 @@ router.post('/user/favorite-song', user.getUserFavorite)
 router.post('/user/delete-song-from-playlist', user.deleteSongPlaylist)
 
 // user playlist
-router.post('user/get-playlist', user.getUserPlaylist)
+router.post('/user/get-playlist', user.getUserPlaylist)
 
 // search
 router.get('/search', music.search)

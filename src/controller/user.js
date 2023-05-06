@@ -27,7 +27,7 @@ exports.getUserPlaylist = async (req, res) => {
 
     try {
         const songs = await PlayList.find({
-            _id: { $in: favorite_song },
+            _id: { $in: playlist },
         })
             .select('name user_id')
             .lean()

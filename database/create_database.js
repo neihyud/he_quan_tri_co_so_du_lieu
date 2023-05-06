@@ -92,4 +92,5 @@ app.post('/notify', async (req, res) => {
        return res.status(500).json({ messages: error })
     }
 })
+
 app.listen(8081, () => console.log(`Listening on port 8081`))

@@ -161,9 +161,21 @@ exports.updateSharedArtist = async (req, res) => {
 
 exports.getTopSongFavorite = async (req, res) => {
     try {
-        const top_song = await View.aggregate([
+        const top_song_vn = View.aggregate([
+            {
+                $lookup: {
+                    from: 'songs',
+                    localField: 'song_id',
+                    foreignField: '_id',
+                    as: 'song',
+                },
+            },
+            {
+                $unwind: '$song',
+            },
             {
                 $match: {
+                    'song.env': 'vn',
                     createdAt: {
                         $gte: new Date(new Date() - 7 * 24 * 60 * 60 * 1000),
                     },
@@ -172,12 +184,12 @@ exports.getTopSongFavorite = async (req, res) => {
             {
                 $group: {
                     _id: '$song_id',
-                    favorite: { $sum: 1 },
+                    view: { $sum: 1 },
                 },
             },
             {
                 $sort: {
-                    favorite: -1,
+                    view: -1,
                 },
             },
             {
@@ -195,17 +207,93 @@ exports.getTopSongFavorite = async (req, res) => {
                 $unwind: '$song',
             },
             {
+                $lookup: {
+                    from: 'artists',
+                    localField: 'song.artist_id',
+                    foreignField: '_id',
+                    as: 'artist',
+                },
+            },
+            {
                 $project: {
-                    name: '$song.name',
-                    thumbnail: '$song.thumbnail',
+                    title: '$song.title',
+                    env: '$song.env',
+                    artist: '$artist.name',
+                    artwork: '$song.artwork',
+                    audio_filepath: '$song.audio_filepath',
                 },
             },
         ])
 
+        const top_song_gb = View.aggregate([
+            {
+                $lookup: {
+                    from: 'songs',
+                    localField: 'song_id',
+                    foreignField: '_id',
+                    as: 'song',
+                },
+            },
+            {
+                $unwind: '$song',
+            },
+            {
+                $match: {
+                    'song.env': 'gb',
+                    createdAt: {
+                        $gte: new Date(new Date() - 7 * 24 * 60 * 60 * 1000),
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: '$song_id',
+                    view: { $sum: 1 },
+                },
+            },
+            {
+                $sort: {
+                    view: -1,
+                },
+            },
+            {
+                $limit: 6,
+            },
+            {
+                $lookup: {
+                    from: 'songs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'song',
+                },
+            },
+            {
+                $unwind: '$song',
+            },
+            {
+                $lookup: {
+                    from: 'artists',
+                    localField: 'song.artist_id',
+                    foreignField: '_id',
+                    as: 'artist',
+                },
+            },
+            {
+                $project: {
+                    title: '$song.title',
+                    env: '$song.env',
+                    artist: '$artist.name',
+                    artwork: '$song.artwork',
+                    audio_filepath: '$song.audio_filepath',
+                },
+            },
+        ])
+
+        const [vn, gb] = await Promise.all([top_song_vn, top_song_gb])
         return res.status(200).json({
             success: true,
             message: 'Lấy top các bài hát thành công',
-            data: top_song,
+            data: [...vn, ...gb],
         })
     } catch (error) {
         return res.status(500).json({
@@ -309,7 +397,7 @@ exports.getTopArtist = async (req, res) => {
     try {
         const artists = await Artist.find({})
             .select('name thumbnail')
-            .sort({ num_liked: -1 })
+            .sort({ followers: -1 })
             .limit(6)
             .lean()
 
