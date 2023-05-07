@@ -39,15 +39,12 @@ exports.getUserPlaylist = async (req, res) => {
         //     .select('name user_id')
         //     .lean()
 
-        const songs = await User.findOne({ _id: user_id })
+        const songs = await Playlist.find({ user_id: user_id })
             .populate({
-                path: 'playlist',
-                select: 'name thumbnail list_of_songs',
-                populate: {
-                    path: 'list_of_songs',
-                    select: '_id',
-                },
+                path: 'list_of_songs',
+                select: '_id',
             })
+            .select('name thumbnail list_of_songs')
             .lean()
 
         // const songs = User.aggregate([
@@ -113,6 +110,40 @@ exports.addSongToPlaylist = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: 'Cập nhập playlist thành công',
+        })
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ success: false, message: 'Lỗi bên trong ' })
+    }
+}
+
+exports.addSongToFavorite = async (req, res) => {
+    const { user_id = '', song_id = '' } = req.body
+
+    try {
+        const song = await User.findOneAndUpdate(
+            {
+                _id: user_id,
+                favorite_song: { $nin: [song_id] },
+            },
+            {
+                $push: {
+                    favorite_song: song_id,
+                },
+            }
+        ).lean()
+
+        if (!song) {
+            return res.status(401).json({
+                success: false,
+                message: 'Bài hát đã có trong favorite',
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Cập nhập favorite thành công',
         })
     } catch (error) {
         return res
@@ -276,6 +307,34 @@ exports.deleteSongPlaylist = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: 'Xóa bài hát trong playlist thành công',
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Lỗi bên trong ',
+            error,
+        })
+    }
+}
+
+exports.deletePlaylistFromUser = async (req, res) => {
+    const { userId = '', playlistId = '' } = req.params
+
+    try {
+        const p = await PlayList.findOneAndDelete({
+            _id: playlistId,
+            user_id: userId,
+        })
+
+        if (!p) {
+            return res.status(400).json({
+                success: false,
+                message: 'Playlist không tồn tại',
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
         })
     } catch (error) {
         return res.status(500).json({

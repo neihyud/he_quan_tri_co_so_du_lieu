@@ -56,6 +56,7 @@ router.put('/user/add-playlist', user.addPlaylistFavorite)
 
 // add song to playlist
 router.put('/user/playlist/add-song', user.addSongToPlaylist)
+router.put('/user/favorite/add-song', user.addSongToFavorite)
 
 // user create playlist
 router.post('/user/playlist', user.createPlaylistUser)
@@ -72,5 +73,6 @@ router.get('/user/:id/get-playlist', user.getUserPlaylist)
 router.get('/search', music.search)
 
 router.get('/playlist/:id', music.getSongFromPlaylist)
+router.delete('/user/:userId/playlist/:playlistId', user.deletePlaylistFromUser)
 
 module.exports = router
