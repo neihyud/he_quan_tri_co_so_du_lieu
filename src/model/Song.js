@@ -29,6 +29,5 @@ const SongSchema = new Schema({
     views: Number,
 })
 
-SongSchema.index({ name: 'text' })
 
 module.exports = mongoose.model('Song', SongSchema)

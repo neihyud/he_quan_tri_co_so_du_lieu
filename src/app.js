@@ -46,7 +46,7 @@ async function uploadFile(name, filePath) {
 }
 
 var job = new CronJob(
-    '*/2 * * * * *',
+    '*/10 * * * * *',
     function () {
         backupMongoDB()
     },
@@ -88,7 +88,7 @@ function backupMongoDB() {
         else {
             console.log('Backup is successfull ✅')
 
-            uploadFile(`${day}-${month}-${year}`, ARCHIVE_PATH)
+            // uploadFile(`${day}-${month}-${year}`, ARCHIVE_PATH)
         }
     })
 }

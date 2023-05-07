@@ -63,7 +63,7 @@ exports.getAlbum = async (req, res) => {
             })
         }
 
-        return res.status(200).json({ success: true, data: {...album} })
+        return res.status(200).json({ success: true, data: { ...album } })
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -359,11 +359,13 @@ exports.search = async (req, res) => {
     const { q = '' } = req.query
 
     try {
-        const songs = Song.find({ $text: { $search: q } }).select('name')
+        const songs = Song.find({ title: new RegExp(`^${q}`, 'i') }).select(
+            'title'
+        )
         const artists = Artist.find({ $text: { $search: q } })
             .populate({
                 path: 'list_of_songs',
-                select: 'name',
+                select: 'title',
             })
             .select('name')
 
