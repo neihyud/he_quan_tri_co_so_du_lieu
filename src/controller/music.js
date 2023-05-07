@@ -215,7 +215,7 @@ exports.getTopSongFavorite = async (req, res) => {
             {
                 $lookup: {
                     from: 'artists',
-                    localField: 'song.artist_id',
+                    localField: 'song.artist',
                     foreignField: '_id',
                     as: 'artist',
                 },
