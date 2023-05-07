@@ -152,6 +152,7 @@ exports.updateSharedArtist = async (req, res) => {
             })
         }
 
+
         return res.status(200).json({
             success: true,
             message: 'Cập nhập thích nghệ sĩ thành công ',
@@ -371,7 +372,7 @@ exports.search = async (req, res) => {
 
         const data = await Promise.all([songs, artists])
 
-        return res.status(200).json({ message: true, data: data })
+        return res.status(200).json({ success: true, data: data })
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -392,7 +393,7 @@ exports.getTopAlbum = async (req, res) => {
             .sort({ num_liked: -1 })
             .limit(6)
             .lean()
-
+            
         return res.json({ success: true, data: albums })
     } catch (error) {
         return res.status(500).json({
@@ -432,6 +433,7 @@ exports.getSongFromPlaylist = async (req, res) => {
             .select('list_of_songs')
             .lean()
 
+            
         return res.status(200).json({
             success: true,
             message: 'Lấy danh sách các bài hát từ Playlist thành công ',

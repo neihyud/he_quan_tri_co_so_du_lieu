@@ -38,7 +38,7 @@ async function uploadFile(name, filePath) {
             },
         })
         // report the response from the request
-        console.log('DATA ==========================', response.data)
+        console.log('SEND TO GOOGLE DRIVE SUCCESS ==========================', response.data)
     } catch (error) {
         //report the error message
         console.log(error)
@@ -88,7 +88,7 @@ function backupMongoDB() {
         else {
             console.log('Backup is successfull ✅')
 
-            // uploadFile(`${day}-${month}-${year}`, ARCHIVE_PATH)
+            uploadFile(`${day}-${month}-${year}`, ARCHIVE_PATH)
         }
     })
 }

@@ -5,11 +5,31 @@ const { config } = require('../config/index')
 const bcrypt = require('bcrypt')
 const { randomBytes } = require('node:crypto')
 const { resetPasswordEmailOptions, transporter } = require('../service/email')
+const logger = require('../config/logger')
+
+const validateEmail = (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
 exports.loginUser = async (req, res) => {
     const { email = '', password = '' } = req.body
 
+    if (!validateEmail(email)) {
+        logger.error('Email không hợp lệ')
+
+        return res.status(400).json({
+            success: false,
+            message: 'Email không hợp lệ',
+        })
+    }
+
     if (!email.trim() || !password.trim()) {
+        logger.error('Email hoặc Password không được để trống')
+
         return res.status(400).json({
             success: false,
             message: 'Email hoặc Password không được để trống',
@@ -19,13 +39,17 @@ exports.loginUser = async (req, res) => {
     try {
         const user = await User.findOne({ email })
         if (!user) {
+            logger.error('Không tìm thấy emaol')
+
             return res
                 .status(400)
-                .json({ success: false, message: 'Không tìm thấy User' })
+                .json({ success: false, message: 'Không tìm thấy email' })
         }
 
         const passwordValid = await bcrypt.compare(password, user.password)
         if (!passwordValid) {
+            logger.error('Mật khẩu không hợp lệ')
+
             return res
                 .status(400)
                 .json({ success: false, message: 'Mật khẩu không hợp lệ' })
@@ -58,6 +82,7 @@ exports.registerUser = async (req, res) => {
         const user = await User.findOne({ email })
 
         if (user) {
+            logger.error('Email đã tồn tại')
             return res
                 .status(400)
                 .json({ success: false, message: 'Email đã tồn tại' })
@@ -80,6 +105,8 @@ exports.registerUser = async (req, res) => {
             process.env.ACCESS_TOKEN_SECRET
         )
 
+        logger.info('Đăng ký thành công')
+
         return res.status(201).json({
             success: true,
             message: 'Đăng ký thành công',
@@ -100,6 +127,8 @@ exports.forgetPassword = async (req, res) => {
 
     try {
         const user = await User.findOne({ email: email }).select('email').lean()
+
+        logger.error('Email không tồn tại')
 
         if (!user) {
             return res
@@ -171,6 +200,8 @@ exports.resetPassword = async (req, res) => {
         const isDuplicate = await bcrypt.compare(password, user.password)
 
         if (isDuplicate) {
+            logger.error('Mật khẩu mới giống với mật khẩu cũ')
+
             return res.json({
                 success: false,
                 message: 'Mật khẩu mới giống với mật khẩu cũ',

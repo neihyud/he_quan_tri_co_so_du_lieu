@@ -5,6 +5,7 @@ const User = require('../model/User')
 const PlayList = require('../model/Playlist')
 const Playlist = require('../model/Playlist')
 const { default: mongoose } = require('mongoose')
+const logger = require('../config/logger')
 
 exports.getUserFavorite = async (req, res) => {
     const { favorite_song = [] } = req.body
@@ -13,8 +14,10 @@ exports.getUserFavorite = async (req, res) => {
         const songs = await Song.find({
             _id: { $in: favorite_song },
         })
-            .select('name')
+            .select('title url artwork')
             .lean()
+
+        logger.info('lấy các bài hát yêu thích thành công của user thành công')
 
         return res.json({ success: true, data: songs })
     } catch (error) {
@@ -75,6 +78,12 @@ exports.addSongToPlaylist = async (req, res) => {
 
 exports.createPlaylistUser = async (req, res) => {
     const { user_id = '', playlist_name = '' } = req.body
+    if (!user_id || !playlist_name) {
+        return res.status(401).json({
+            success: false,
+            message: 'Không tìm thấy User',
+        })
+    }
     try {
         const user = await User.findOne({ _id: user_id }).lean()
 
