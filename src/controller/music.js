@@ -428,7 +428,11 @@ exports.getSongFromPlaylist = async (req, res) => {
         const songs = await PlayList.findOne({ _id: id })
             .populate({
                 path: 'list_of_songs',
-                select: 'name url',
+                select: 'title url artwork artist',
+                populate: {
+                    path: 'artist',
+                    select: 'name'
+                }
             })
             .select('list_of_songs')
             .lean()

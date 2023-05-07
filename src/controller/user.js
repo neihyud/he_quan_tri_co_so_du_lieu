@@ -16,7 +16,11 @@ exports.getUserFavorite = async (req, res) => {
         })
             .populate({
                 path: 'favorite_song',
-                select: 'title url artwork',
+                select: 'title url artwork artist',
+                populate: {
+                    path: 'artist',
+                    select: 'name',
+                },
             })
             .select('favorite_song')
             .lean()
@@ -33,16 +37,14 @@ exports.getUserPlaylist = async (req, res) => {
     const { id: user_id = '' } = req.params
 
     try {
-        // const songs = await User.find({
-        //     _id: { $in: playlist },
-        // })
-        //     .select('name user_id')
-        //     .lean()
-
         const songs = await Playlist.find({ user_id: user_id })
             .populate({
                 path: 'list_of_songs',
-                select: '_id',
+                select: '_id title artwork url artist',
+                populate: {
+                    path: 'artist',
+                    select: 'name',
+                },
             })
             .select('name thumbnail list_of_songs')
             .lean()
@@ -87,6 +89,14 @@ exports.addSongToPlaylist = async (req, res) => {
     const { user_id = '', song_id = '', playlist_id = '' } = req.body
 
     try {
+
+        if (!user_id || !song_id || !playlist_id) {
+            return res.status(401).json({
+                success: false,
+                message: 'Bài hát đã có trong playlist',
+            })
+        }
+
         const playlist = await PlayList.findOneAndUpdate(
             {
                 _id: playlist_id,
@@ -321,12 +331,19 @@ exports.deletePlaylistFromUser = async (req, res) => {
     const { userId = '', playlistId = '' } = req.params
 
     try {
+        if (!userId || !playlistId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Playlist hoặc User không tồn tại',
+            })
+        }
         const p = await PlayList.findOneAndDelete({
             _id: playlistId,
             user_id: userId,
         })
 
         if (!p) {
+            logger.error('Playlist không tồn tại')
             return res.status(400).json({
                 success: false,
                 message: 'Playlist không tồn tại',
@@ -335,6 +352,7 @@ exports.deletePlaylistFromUser = async (req, res) => {
 
         return res.status(200).json({
             success: true,
+            message: "Xóa thành công"
         })
     } catch (error) {
         return res.status(500).json({
