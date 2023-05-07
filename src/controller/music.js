@@ -16,7 +16,13 @@ exports.getSong = async (req, res) => {
     const { id: song_id = '' } = req.params
 
     try {
-        const song = await Song.findOne({ _id: song_id }).lean()
+        const song = await Song.findOne({ _id: song_id })
+            .select('-single')
+            .populate({
+                path: 'artist',
+                select: 'name',
+            })
+            .lean()
 
         if (!song) {
             return res.status(401).json({
@@ -42,11 +48,11 @@ exports.getAlbum = async (req, res) => {
         const album = await Album.findOne({ _id: album_id })
             .populate({
                 path: 'artist_id',
-                select: '_id name thumbnail',
+                select: '_id name artist',
             })
             .populate({
                 path: 'list_of_songs',
-                select: '_id name audio_filepath thumbnail',
+                select: '_id title artwork url env',
             })
             .lean()
 
@@ -57,7 +63,7 @@ exports.getAlbum = async (req, res) => {
             })
         }
 
-        return res.status(200).json({ success: true, data: album })
+        return res.status(200).json({ success: true, data: {...album} })
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -74,7 +80,7 @@ exports.getArtist = async (req, res) => {
         const artist = await Artist.findOne({ _id: artist_id })
             .populate({
                 path: 'list_of_songs',
-                select: '_id name thumbnail audio_filepath',
+                select: '_id title artwork url env',
             })
             .lean()
 
@@ -220,7 +226,7 @@ exports.getTopSongFavorite = async (req, res) => {
                     env: '$song.env',
                     artist: '$artist.name',
                     artwork: '$song.artwork',
-                    audio_filepath: '$song.audio_filepath',
+                    url: '$song.url',
                 },
             },
         ])
@@ -284,7 +290,7 @@ exports.getTopSongFavorite = async (req, res) => {
                     env: '$song.env',
                     artist: '$artist.name',
                     artwork: '$song.artwork',
-                    audio_filepath: '$song.audio_filepath',
+                    url: '$song.url',
                 },
             },
         ])
@@ -327,14 +333,12 @@ exports.getNotifyDetail = async (req, res) => {
     try {
         let data = null
         if (type == 'Player') {
-            data = await Song.findOne({ _id: id })
-                .select('name audio_filepath')
-                .lean()
+            data = await Song.findOne({ _id: id }).select('name url').lean()
         } else if (type == 'TheAlbum') {
             data = await Album.findOne({ _id: id })
                 .populate({
                     path: 'list_of_songs',
-                    select: '_id name thumbnail audio_filepath',
+                    select: '_id name thumbnail url',
                 })
                 .lean()
         } else {
@@ -379,6 +383,10 @@ exports.getTopAlbum = async (req, res) => {
     try {
         const albums = await Album.find({})
             .select('name thumbnail song')
+            .populate({
+                path: 'artist_id',
+                select: 'name',
+            })
             .sort({ num_liked: -1 })
             .limit(6)
             .lean()
@@ -417,7 +425,7 @@ exports.getSongFromPlaylist = async (req, res) => {
         const songs = await PlayList.findOne({ _id: id })
             .populate({
                 path: 'list_of_songs',
-                select: 'name audio_filepath',
+                select: 'name url',
             })
             .select('list_of_songs')
             .lean()

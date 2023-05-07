@@ -24,7 +24,7 @@ const SongSchema = new Schema({
         ref: 'Artist',
     },
     env: String,
-    audio_filepath: String,
+    url: String,
     lyric: String,
     views: Number,
 })

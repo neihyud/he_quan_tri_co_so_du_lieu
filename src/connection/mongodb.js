@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
 const { config } = require('../config/index')
-
+const { exec } = require('child_process');
 const connect = async () => {
-    try { 
+    try {
         await mongoose.connect(config.mongodbUri)
         console.log('MongoDb connect success!')
     } catch (error) {
