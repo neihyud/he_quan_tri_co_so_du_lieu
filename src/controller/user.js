@@ -8,13 +8,17 @@ const { default: mongoose } = require('mongoose')
 const logger = require('../config/logger')
 
 exports.getUserFavorite = async (req, res) => {
-    const { favorite_song = [] } = req.body
+    const { id: user_id = '' } = req.params
 
     try {
-        const songs = await Song.find({
-            _id: { $in: favorite_song },
+        const songs = await User.findOne({
+            _id: user_id,
         })
-            .select('title url artwork')
+            .populate({
+                path: 'favorite_song',
+                select: 'title url artwork',
+            })
+            .select('favorite_song')
             .lean()
 
         logger.info('lấy các bài hát yêu thích thành công của user thành công')
@@ -26,14 +30,55 @@ exports.getUserFavorite = async (req, res) => {
 }
 
 exports.getUserPlaylist = async (req, res) => {
-    const { playlist = [] } = req.body
+    const { id: user_id = '' } = req.params
 
     try {
-        const songs = await PlayList.find({
-            _id: { $in: playlist },
-        })
-            .select('name user_id')
+        // const songs = await User.find({
+        //     _id: { $in: playlist },
+        // })
+        //     .select('name user_id')
+        //     .lean()
+
+        const songs = await User.findOne({ _id: user_id })
+            .populate({
+                path: 'playlist',
+                select: 'name thumbnail list_of_songs',
+                populate: {
+                    path: 'list_of_songs',
+                    select: '_id',
+                },
+            })
             .lean()
+
+        // const songs = User.aggregate([
+        //     // Match user with given id
+        //     { $match: { _id: user_id } },
+        //     // Join playlists and unwind resulting array
+        //     {
+        //         $lookup: {
+        //             from: 'playlists',
+        //             localField: 'playlist',
+        //             foreignField: '_id',
+        //             as: 'playlists',
+        //         },
+        //     },
+        //     { $unwind: '$playlists' },
+        //     // Group playlists by name and count number of songs in each
+        //     {
+        //         $group: {
+        //             _id: '$playlists.name',
+        //             numSongs: { $sum: { $size: '$playlists.list_of_songs' } },
+        //         },
+        //     },
+        //     // Project the playlist name and song count as an object
+        //     {
+        //         $project: {
+        //             _id: 0,
+        //             name: '$_id',
+        //             numSongs: 1,
+        //         },
+        //     },
+        // ])
 
         return res.json({ success: true, data: songs })
     } catch (error) {

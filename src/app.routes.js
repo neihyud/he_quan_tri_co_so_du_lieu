@@ -61,12 +61,12 @@ router.put('/user/playlist/add-song', user.addSongToPlaylist)
 router.post('/user/playlist', user.createPlaylistUser)
 
 // user favorite
-router.post('/user/favorite-song', user.getUserFavorite)
+router.get('/user/:id/favorite-song', user.getUserFavorite)
 
 router.post('/user/delete-song-from-playlist', user.deleteSongPlaylist)
 
 // user playlist
-router.post('/user/get-playlist', user.getUserPlaylist)
+router.get('/user/:id/get-playlist', user.getUserPlaylist)
 
 // search
 router.get('/search', music.search)
